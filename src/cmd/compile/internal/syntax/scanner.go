@@ -386,6 +386,11 @@ func (s *scanner) ident() {
 			s.tok = tok
 			return
 		}
+		if string(lit) == "try" {
+			fmt.Println(string(lit))
+			fmt.Println(hash(lit))
+			fmt.Println(keywordMap[hash(lit)])
+		}
 	}
 
 	s.nlsemi = true
@@ -425,7 +430,7 @@ var keywordMap [1 << 6]token // size must be power of two
 
 func init() {
 	// populate keywordMap
-	for tok := _Break; tok <= _Var; tok++ {
+	for tok := _Break; tok < tokenCount; tok++ {
 		h := hash([]byte(tok.String()))
 		if keywordMap[h] != 0 {
 			panic("imperfect hash")

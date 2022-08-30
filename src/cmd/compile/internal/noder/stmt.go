@@ -128,6 +128,12 @@ func (g *irgen) stmt(stmt syntax.Stmt) ir.Node {
 		return n
 	case *syntax.SwitchStmt:
 		return g.switchStmt(stmt)
+	case *syntax.TryCatchStmt:
+		var c ir.Node
+		if stmt.Catch != nil {
+			c = g.expr(stmt.Catch)
+		}
+		return ir.NewTryCatchStmt(g.pos(stmt), g.expr(stmt.Try), c)
 
 	default:
 		g.unhandled("statement", stmt)

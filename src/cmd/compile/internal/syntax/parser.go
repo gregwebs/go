@@ -7,6 +7,7 @@ package syntax
 import (
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -310,7 +311,9 @@ const stopset uint64 = 1<<_Break |
 	1<<_Select |
 	1<<_Switch |
 	1<<_Type |
-	1<<_Var
+	1<<_Var |
+	1<<_Try |
+	1<<_Catch
 
 // Advance consumes tokens until it finds a token of the stopset or followlist.
 // The stopset is only considered if we are inside a function (p.fnest > 0).
@@ -961,6 +964,38 @@ func (p *parser) callStmt() *CallStmt {
 	}
 
 	s.Call = cx
+	return s
+}
+
+// tryCatchStmt parses call-like statements that are preceded by 'try' or succeeded by 'catch'.
+func (p *parser) tryCatchStmt() *TryCatchStmt {
+	if trace {
+		defer p.trace("tryCatchStmt")()
+	}
+
+	s := new(TryCatchStmt)
+	s.pos = p.pos()
+	tok := p.tok
+	p.next()
+
+	x := p.pexpr(nil, p.tok == _Lparen) // keep_parens so we can report error below
+	if t := unparen(x); t != x {
+		p.errorAt(x.Pos(), fmt.Sprintf("expression in %s must not be parenthesized", tok))
+		// already progressed, no need to advance
+		x = t
+	}
+
+	cx, ok := x.(*CallExpr)
+	if !ok {
+		p.errorAt(x.Pos(), fmt.Sprintf("expression in %s must be function call", tok))
+		// already progressed, no need to advance
+		cx = new(CallExpr)
+		cx.pos = x.Pos()
+		cx.Fun = x // assume common error of missing parentheses (function invocation)
+	}
+
+	s.Try = cx
+	Fdump(os.Stdout, s)
 	return s
 }
 
@@ -2591,6 +2626,9 @@ func (p *parser) stmtOrNil() Stmt {
 			s.Label = p.name()
 		}
 		return s
+
+	case _Try, _Catch:
+		return p.tryCatchStmt()
 
 	case _Go, _Defer:
 		return p.callStmt()

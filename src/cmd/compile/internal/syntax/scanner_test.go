@@ -319,6 +319,8 @@ var sampleTokens = [...]struct {
 	{_Switch, "switch", 0, 0},
 	{_Type, "type", 0, 0},
 	{_Var, "var", 0, 0},
+	{_Try, "try", 0, 0},
+	{_Catch, "catch", 0, 0},
 }
 
 func TestComments(t *testing.T) {

@@ -162,6 +162,10 @@ func walkStmt(n ir.Node) ir.Node {
 	case ir.ORANGE:
 		n := n.(*ir.RangeStmt)
 		return walkRange(n)
+
+	case ir.OTRY, ir.OCATCH:
+		n := n.(*ir.TryCatchStmt)
+		return walkTryCatch(n)
 	}
 
 	// No return! Each case must return (or panic),
@@ -223,5 +227,33 @@ func walkIf(n *ir.IfStmt) ir.Node {
 	n.Cond = walkExpr(n.Cond, n.PtrInit())
 	walkStmtList(n.Body)
 	walkStmtList(n.Else)
+	return n
+}
+
+// walkTryCatch walks an OTRY node
+// rewrite:
+//
+//	v := try f()
+//
+// to
+//
+//	v, err := f()
+//	if err != nil {
+//	    return Zero, handler(err)
+//	}
+func walkTryCatch(n *ir.TryCatchStmt) ir.Node {
+	n.Try = walkExpr(n.Try, n.PtrInit())
+	if n.Catch != nil {
+		n.Catch = walkExpr(n.Catch, n.PtrInit())
+	}
+
+	/*
+		ir.NewDecl()
+		ir.NewAssignListStmt(n.Try.Pos, ir.OAS2FUNC, []ir.Node{n.Try})
+		// cannot put side effects from n.Right on init,
+		// because they cannot run before n.Left is checked.
+		// save elsewhere and store on the eventual n.Right.
+		var ll ir.Nodes
+	*/
 	return n
 }

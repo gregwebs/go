@@ -38,6 +38,14 @@ func TestVerify(t *testing.T) {
 	verifyPrint(t, *src_, ast)
 }
 
+func TestParseTry(t *testing.T) {
+	src := "package p\nimport ( \"fmt\" )\nfunc makeError() error {\nreturn fmt.Errorf(\"makeError\")\n}\nfunc f() error { try makeError() }"
+	_, err := Parse(nil, strings.NewReader(src), nil, nil, 0)
+	if err != nil {
+		t.Errorf("ParseFile(%s) failed unexpectedly %v", src, err)
+	}
+}
+
 func TestStdLib(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode")

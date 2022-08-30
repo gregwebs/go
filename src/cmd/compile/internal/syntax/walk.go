@@ -324,6 +324,12 @@ func (w walker) node(n Node) {
 		}
 		w.stmtList(n.Body)
 
+	case *TryCatchStmt:
+		w.node(n.Try)
+		if n.Catch != nil {
+			w.node(n.Catch)
+		}
+
 	default:
 		panic(fmt.Sprintf("internal error: unknown node type %T", n))
 	}

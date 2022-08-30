@@ -202,6 +202,9 @@ var stmts = []test{
 	{"SelectStmt", `@select {}`},
 	{"SelectStmt", `@select { default: }`},
 	{"SelectStmt", `@select { default: ch <- false }`},
+
+	{"TryCatchStmt", `@try f()`},
+	{"TryCatchStmt", `@try err`},
 }
 
 var ranges = []test{

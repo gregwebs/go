@@ -454,3 +454,23 @@ func NewTypeSwitchGuard(pos src.XPos, tag *Ident, x Node) *TypeSwitchGuard {
 	n.op = OTYPESW
 	return n
 }
+
+// A TryCatchStmt is a try or catch statement: try Call / Call catch.
+//
+// Try syntax is similar to go/defer
+// Catch inserts an error transformation
+type TryCatchStmt struct {
+	miniStmt
+	Try   Node
+	Catch Node // Present for catch, but not for try
+}
+
+func NewTryCatchStmt(pos src.XPos, call Node, handler Node) *TryCatchStmt {
+	n := &TryCatchStmt{Try: call, Catch: handler}
+	n.pos = pos
+	n.op = OTRY
+	if handler != nil {
+		n.op = OCATCH
+	}
+	return n
+}
