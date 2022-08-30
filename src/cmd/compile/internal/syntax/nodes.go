@@ -423,6 +423,12 @@ type (
 		Rbrace Pos
 		stmt
 	}
+
+	TryCatchStmt struct {
+		Try   *CallExpr
+		Catch Expr // Only Catch has an associated expression
+		stmt
+	}
 )
 
 type (

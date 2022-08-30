@@ -89,6 +89,8 @@ var OpNames = []string{
 	OUNSAFEADD:   "unsafe.Add",
 	OUNSAFESLICE: "unsafe.Slice",
 	OXOR:         "^",
+	OTRY:         "try",
+	OCATCH:       "catch",
 }
 
 // GoString returns the Go syntax for the Op, or else its name.
@@ -281,6 +283,8 @@ var OpPrec = []int{
 	ORETURN:     -1,
 	OSELECT:     -1,
 	OSWITCH:     -1,
+	OTRY:        -1,
+	OCATCH:      -1,
 
 	OEND: 0,
 }
@@ -387,6 +391,14 @@ func stmtFmt(n Node, s fmt.State) {
 	case ODEFER:
 		n := n.(*GoDeferStmt)
 		fmt.Fprintf(s, "defer %v", n.Call)
+
+	case OTRY:
+		n := n.(*TryCatchStmt)
+		fmt.Fprintf(s, "try %v", n.Try)
+
+	case OCATCH:
+		n := n.(*TryCatchStmt)
+		fmt.Fprintf(s, "%v catch %v", n.Try, n.Catch)
 
 	case OIF:
 		n := n.(*IfStmt)
@@ -881,6 +893,7 @@ func exprFmt(n Node, s fmt.State, prec int) {
 			}
 			exprFmt(n1, s, nprec)
 		}
+
 	default:
 		fmt.Fprintf(s, "<node %v>", n.Op())
 	}

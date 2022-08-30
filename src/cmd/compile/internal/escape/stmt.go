@@ -189,6 +189,10 @@ func (e *escape) stmt(n ir.Node) {
 	case ir.OTAILCALL:
 		n := n.(*ir.TailCallStmt)
 		e.call(nil, n.Call)
+
+	case ir.OTRY, ir.OCATCH:
+		n := n.(*ir.TryCatchStmt)
+		e.assignList([]ir.Node{n.Try}, []ir.Node{n.Catch}, "try-catch", n)
 	}
 }
 

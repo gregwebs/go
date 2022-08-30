@@ -791,6 +791,34 @@ func (n *LogicalExpr) editChildren(edit func(Node) Node) {
 	}
 }
 
+func (n *TryCatchStmt) Format(s fmt.State, verb rune) { fmtNode(n, s, verb) }
+func (n *TryCatchStmt) copy() Node {
+	c := *n
+	c.init = copyNodes(c.init)
+	return &c
+}
+func (n *TryCatchStmt) doChildren(do func(Node) bool) bool {
+	if doNodes(n.init, do) {
+		return true
+	}
+	if n.Try != nil && do(n.Try) {
+		return true
+	}
+	if n.Catch != nil && do(n.Catch) {
+		return true
+	}
+	return false
+}
+func (n *TryCatchStmt) editChildren(edit func(Node) Node) {
+	editNodes(n.init, edit)
+	if n.Try != nil {
+		n.Try = edit(n.Try).(Node)
+	}
+	if n.Catch != nil {
+		n.Catch = edit(n.Catch).(Node)
+	}
+}
+
 func (n *MakeExpr) Format(s fmt.State, verb rune) { fmtNode(n, s, verb) }
 func (n *MakeExpr) copy() Node {
 	c := *n

@@ -202,6 +202,14 @@ var stmts = []test{
 	{"SelectStmt", `@select {}`},
 	{"SelectStmt", `@select { default: }`},
 	{"SelectStmt", `@select { default: ch <- false }`},
+
+	{"TryCatchStmt", `@try f()`},
+	{"TryCatchStmt", `x := @try f()`},
+	{"TryCatchStmt", `x, y := @try f()`},
+
+	{"TryCatchStmt", `f() @catch func(err error) error { return err }`},
+	{"TryCatchStmt", `x := f() @catch func(err error) error { return err }`},
+	{"TryCatchStmt", `x, y := f() @catch func(err error) error { return err }`},
 }
 
 var ranges = []test{

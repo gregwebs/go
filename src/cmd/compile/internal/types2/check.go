@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"go/constant"
+	"os"
 )
 
 var nopos syntax.Pos
@@ -311,6 +312,13 @@ func (check *Checker) checkFiles(files []*syntax.File) (err error) {
 		if check.conf.Trace {
 			fmt.Println()
 			fmt.Println(msg)
+		}
+	}
+
+	if len(os.Getenv("XDBG")) > 0 {
+		for i, f := range files {
+			fmt.Fprintf(os.Stderr, "before typecheck, file %d:\n", i)
+			syntax.Fdump(os.Stderr, f)
 		}
 	}
 

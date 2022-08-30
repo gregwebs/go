@@ -405,6 +405,21 @@ func (n *LogicalExpr) SetOp(op Op) {
 	}
 }
 
+// A TryCatchExpr is a expression try Try or Try catch Catch
+// where Try is func(_...) (_, error)
+// and Catch is func(error) error
+type TryCatchExpr struct {
+	miniExpr
+	Try   Node
+	Catch Node
+}
+
+func NewTryCatchExpr(pos src.XPos, x, y Node) *TryCatchExpr {
+	n := &TryCatchExpr{Try: x, Catch: y}
+	n.pos = pos
+	return n
+}
+
 // A MakeExpr is a make expression: make(Type[, Len[, Cap]]).
 // Op is OMAKECHAN, OMAKEMAP, OMAKESLICE, or OMAKESLICECOPY,
 // but *not* OMAKE (that's a pre-typechecking CallExpr).

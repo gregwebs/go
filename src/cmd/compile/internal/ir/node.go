@@ -305,6 +305,8 @@ const (
 	OGETCALLERSP // runtime.getcallersp() (stack pointer in caller frame)
 
 	OEND
+	OTRY   // try Call
+	OCATCH // catch handler
 )
 
 // IsCmp reports whether op is a comparison operation (==, !=, <, <=,

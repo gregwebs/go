@@ -652,6 +652,16 @@ func (check *Checker) stmt(ctxt stmtContext, s syntax.Stmt) {
 		}
 		check.stmt(inner, s.Body)
 
+	case *syntax.TryCatchStmt:
+		check.openScope(s, "try")
+		defer check.closeScope()
+		var t operand
+		check.expr(&t, s.Try)
+		if s.Catch != nil {
+			var c operand
+			check.expr(&c, s.Catch)
+		}
+
 	default:
 		check.error(s, "invalid statement")
 	}

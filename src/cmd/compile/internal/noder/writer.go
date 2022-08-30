@@ -1266,6 +1266,10 @@ func (w *writer) stmt1(stmt syntax.Stmt) {
 	case *syntax.SwitchStmt:
 		w.Code(stmtSwitch)
 		w.switchStmt(stmt)
+
+	case *syntax.TryCatchStmt:
+		w.Code(stmtTry)
+		w.tryCatchStmt(stmt)
 	}
 }
 
@@ -1447,6 +1451,15 @@ func (w *writer) ifStmt(stmt *syntax.IfStmt) {
 	w.expr(stmt.Cond)
 	w.blockStmt(stmt.Then)
 	w.stmt(stmt.Else)
+	w.closeAnotherScope()
+}
+
+func (w *writer) tryCatchStmt(stmt *syntax.TryCatchStmt) {
+	w.Sync(pkgbits.SyncIfStmt)
+	w.openScope(stmt.Pos())
+	w.pos(stmt)
+	w.expr(stmt.Try)
+	w.expr(stmt.Catch)
 	w.closeAnotherScope()
 }
 

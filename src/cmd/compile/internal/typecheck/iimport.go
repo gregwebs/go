@@ -1722,6 +1722,14 @@ func (r *importReader) node() ir.Node {
 		n.Def = r.bool()
 		return n
 
+	case ir.OTRY:
+		n := ir.NewTryCatchStmt(r.pos(), r.expr(), nil)
+		return n
+
+	case ir.OCATCH:
+		n := ir.NewTryCatchStmt(r.pos(), r.expr(), r.expr())
+		return n
+
 	default:
 		base.Fatalf("cannot import %v (%d) node\n"+
 			"\t==> please file an issue and assign to gri@", op, int(op))
