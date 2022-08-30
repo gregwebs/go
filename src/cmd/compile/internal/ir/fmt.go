@@ -89,6 +89,7 @@ var OpNames = []string{
 	OUNSAFEADD:   "unsafe.Add",
 	OUNSAFESLICE: "unsafe.Slice",
 	OXOR:         "^",
+	OQUESTION:    "?",
 }
 
 // GoString returns the Go syntax for the Op, or else its name.
@@ -256,6 +257,7 @@ var OpPrec = []int{
 	OSEND:          3,
 	OANDAND:        2,
 	OOROR:          1,
+	OQUESTION:      1,
 
 	// Statements handled by stmtfmt
 	OAS:         -1,
@@ -881,6 +883,12 @@ func exprFmt(n Node, s fmt.State, prec int) {
 			}
 			exprFmt(n1, s, nprec)
 		}
+	case OQUESTION:
+		n := n.(*ErrorHandlerExpr)
+		exprFmt(n.X, s, nprec)
+		fmt.Fprintf(s, " %v ", n.Op())
+		exprFmt(n.Y, s, nprec+1)
+
 	default:
 		fmt.Fprintf(s, "<node %v>", n.Op())
 	}

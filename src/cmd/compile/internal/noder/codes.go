@@ -59,6 +59,7 @@ const (
 	exprFuncInst
 	exprRecv
 	exprReshape
+	exprQuestion
 )
 
 type codeAssign int

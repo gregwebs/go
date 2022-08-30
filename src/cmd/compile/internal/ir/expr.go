@@ -405,6 +405,31 @@ func (n *LogicalExpr) SetOp(op Op) {
 	}
 }
 
+// An ErrorHandlerExpr is a expression X ? Y
+// where X is func(_...) (_, error)
+// and Y is func(error) error
+type ErrorHandlerExpr struct {
+	miniExpr
+	X Node
+	Y Node
+}
+
+func NewErrorHandlerExpr(pos src.XPos, x, y Node) *ErrorHandlerExpr {
+	n := &ErrorHandlerExpr{X: x, Y: y}
+	n.pos = pos
+	n.op = OQUESTION
+	return n
+}
+
+func (n *ErrorHandlerExpr) SetOp(op Op) {
+	switch op {
+	default:
+		panic(n.no("SetOp " + op.String()))
+	case OQUESTION:
+		n.op = op
+	}
+}
+
 // A MakeExpr is a make expression: make(Type[, Len[, Cap]]).
 // Op is OMAKECHAN, OMAKEMAP, OMAKESLICE, or OMAKESLICECOPY,
 // but *not* OMAKE (that's a pre-typechecking CallExpr).

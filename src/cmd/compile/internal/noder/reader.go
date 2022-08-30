@@ -2284,6 +2284,13 @@ func (r *reader) expr() (res ir.Node) {
 		}
 		return typecheck.Expr(ir.NewBinaryExpr(pos, op, x, y))
 
+	case exprQuestion:
+		x := r.expr()
+		pos := r.pos()
+		y := r.expr()
+
+		return typecheck.Expr(ir.NewErrorHandlerExpr(pos, x, y))
+
 	case exprRecv:
 		x := r.expr()
 		pos := r.pos()

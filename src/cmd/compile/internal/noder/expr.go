@@ -157,6 +157,10 @@ func (g *irgen) expr0(typ types2.Type, expr syntax.Expr) ir.Node {
 			x := g.expr(expr.X)
 			y := g.expr(expr.Y)
 			return typed(x.Type(), ir.NewLogicalExpr(pos, op, x, y))
+		case ir.OQUESTION:
+			x := g.expr(expr.X)
+			y := g.expr(expr.Y)
+			return typed(x.Type(), ir.NewErrorHandlerExpr(pos, x, y))
 		default:
 			n := Binary(pos, op, g.typ(typ), g.expr(expr.X), g.expr(expr.Y))
 			if op == ir.OADD && !g.delayTransform() {

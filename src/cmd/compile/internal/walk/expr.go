@@ -159,6 +159,10 @@ func walkExpr1(n ir.Node, init *ir.Nodes) ir.Node {
 		n := n.(*ir.LogicalExpr)
 		return walkLogical(n, init)
 
+	case ir.OQUESTION:
+		n := n.(*ir.ErrorHandlerExpr)
+		return walkErrorHandler(n, init)
+
 	case ir.OPRINT, ir.OPRINTN:
 		return walkPrint(n.(*ir.CallExpr), init)
 
@@ -794,6 +798,28 @@ func walkIndexMap(n *ir.IndexExpr, init *ir.Nodes) ir.Node {
 
 // walkLogical walks an OANDAND or OOROR node.
 func walkLogical(n *ir.LogicalExpr, init *ir.Nodes) ir.Node {
+	n.X = walkExpr(n.X, init)
+
+	// cannot put side effects from n.Right on init,
+	// because they cannot run before n.Left is checked.
+	// save elsewhere and store on the eventual n.Right.
+	var ll ir.Nodes
+
+	n.Y = walkExpr(n.Y, &ll)
+	n.Y = ir.InitExpr(ll, n.Y)
+	return n
+}
+
+// walkErrorHandler walks an OQUESTION node
+// rewrite:
+//   v := f() ? handler
+// to
+//   v, err := f()
+//   if err != nil {
+//       return Zero, handler(err)
+//   }
+// 
+func walkErrorHandler(n *ir.ErrorHandlerExpr, init *ir.Nodes) ir.Node {
 	n.X = walkExpr(n.X, init)
 
 	// cannot put side effects from n.Right on init,

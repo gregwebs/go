@@ -1722,6 +1722,11 @@ func (r *importReader) node() ir.Node {
 		n.Def = r.bool()
 		return n
 
+	case ir.OQUESTION:
+		n := ir.NewErrorHandlerExpr(r.pos(), r.expr(), r.expr())
+		n.SetType(r.typ())
+		return n
+
 	default:
 		base.Fatalf("cannot import %v (%d) node\n"+
 			"\t==> please file an issue and assign to gri@", op, int(op))

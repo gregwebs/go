@@ -802,6 +802,12 @@ func (o *orderState) stmt(n ir.Node) {
 		orderBlock(&n.Else, o.free)
 		o.out = append(o.out, n)
 
+	case ir.OQUESTION:
+		n := n.(*ir.ErrorHandlerExpr)
+		n.X = o.expr(n.X, nil)
+		n.Y = o.expr(n.Y, nil)
+		o.out = append(o.out, n)
+
 	case ir.ORANGE:
 		// n.Right is the expression being ranged over.
 		// order it, and then make a copy if we need one.

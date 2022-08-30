@@ -234,6 +234,7 @@ var sampleTokens = [...]struct {
 	// operators
 	{_Operator, "!", Not, 0},
 	{_Operator, "~", Tilde, 0},
+	{_Operator, "?", Question, precOrOr},
 
 	{_Operator, "||", OrOr, precOrOr},
 

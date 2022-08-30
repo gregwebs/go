@@ -1111,6 +1111,7 @@ func init() {
 
 		syntax.AndAnd: allBoolean,
 		syntax.OrOr:   allBoolean,
+		syntax.Question: allNumericOrString,
 	}
 }
 
