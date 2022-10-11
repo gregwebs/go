@@ -308,10 +308,10 @@ func testCgoPprof(t *testing.T, buildArg, runArg, top, bottom string) {
 	fn := strings.TrimSpace(string(got))
 	defer os.Remove(fn)
 
-	for try := 0; try < 2; try++ {
+	for i := 0; i < 2; i++ {
 		cmd := testenv.CleanCmdEnv(exec.Command(testenv.GoToolPath(t), "tool", "pprof", "-tagignore=ignore", "-traces"))
 		// Check that pprof works both with and without explicit executable on command line.
-		if try == 0 {
+		if i == 0 {
 			cmd.Args = append(cmd.Args, exe, fn)
 		} else {
 			cmd.Args = append(cmd.Args, fn)

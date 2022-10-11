@@ -1633,7 +1633,7 @@ func testAutomaticHTTP2_ListenAndServe(t *testing.T, tlsConf *tls.Config) {
 	const maxTries = 5
 	var ln net.Listener
 Try:
-	for try := 0; try < maxTries; try++ {
+	for request := 0; request < maxTries; request++ {
 		ln = newLocalListener(t)
 		addr := ln.Addr().String()
 		ln.Close()
@@ -1650,7 +1650,7 @@ Try:
 		go func() { errc <- s.ListenAndServeTLS("", "") }()
 		select {
 		case err := <-errc:
-			t.Logf("On try #%v: %v", try+1, err)
+			t.Logf("On try #%v: %v", request+1, err)
 			continue
 		case ln = <-lnc:
 			ok = true
@@ -5770,9 +5770,9 @@ func testServerKeepAlivesEnabled(t *testing.T, h2 bool) {
 	defer cst.close()
 	srv := cst.ts.Config
 	srv.SetKeepAlivesEnabled(false)
-	for try := 0; try < 2; try++ {
+	for request := 0; request < 2; request++ {
 		if !waitCondition(2*time.Second, 10*time.Millisecond, srv.ExportAllConnsIdle) {
-			t.Fatalf("request %v: test server has active conns", try)
+			t.Fatalf("request %v: test server has active conns", request)
 		}
 		conns := 0
 		var info httptrace.GotConnInfo
@@ -5792,10 +5792,10 @@ func testServerKeepAlivesEnabled(t *testing.T, h2 bool) {
 		}
 		res.Body.Close()
 		if conns != 1 {
-			t.Fatalf("request %v: got %v conns, want 1", try, conns)
+			t.Fatalf("request %v: got %v conns, want 1", request, conns)
 		}
 		if info.Reused || info.WasIdle {
-			t.Fatalf("request %v: Reused=%v (want false), WasIdle=%v (want false)", try, info.Reused, info.WasIdle)
+			t.Fatalf("request %v: Reused=%v (want false), WasIdle=%v (want false)", request, info.Reused, info.WasIdle)
 		}
 	}
 }

@@ -77,8 +77,8 @@ func Open(name string) (*File, error) {
 	} else if _, ok := err.(archive.ErrGoObjOtherVersion); ok {
 		return nil, fmt.Errorf("open %s: %v", name, err)
 	}
-	for _, try := range openers {
-		if raw, err := try(r); err == nil {
+	for _, tryOpen := range openers {
+		if raw, err := tryOpen(r); err == nil {
 			return &File{r, []*Entry{{raw: raw}}}, nil
 		}
 	}

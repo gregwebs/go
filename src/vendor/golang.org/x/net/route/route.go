@@ -108,9 +108,9 @@ const (
 // an interface index or a set of interface flags. In most cases, zero
 // means a wildcard.
 func FetchRIB(af int, typ RIBType, arg int) ([]byte, error) {
-	try := 0
+	attempt := 0
 	for {
-		try++
+		attempt++
 		mib := [6]int32{syscall.CTL_NET, syscall.AF_ROUTE, 0, int32(af), int32(typ), int32(arg)}
 		n := uintptr(0)
 		if err := sysctl(mib[:], nil, &n, nil, 0); err != nil {
@@ -125,7 +125,7 @@ func FetchRIB(af int, typ RIBType, arg int) ([]byte, error) {
 			// between the two sysctl calls, try a few times
 			// before failing. (golang.org/issue/45736).
 			const maxTries = 3
-			if err == syscall.ENOMEM && try < maxTries {
+			if err == syscall.ENOMEM && attempt < maxTries {
 				continue
 			}
 			return nil, os.NewSyscallError("sysctl", err)
