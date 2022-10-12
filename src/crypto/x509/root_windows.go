@@ -25,38 +25,26 @@ func createStoreContext(leaf *Certificate, opts *VerifyOptions) (*syscall.CertCo
 	var storeCtx *syscall.CertContext
 
 	leafCtx, err := syscall.CertCreateCertificateContext(syscall.X509_ASN_ENCODING|syscall.PKCS_7_ASN_ENCODING, &leaf.Raw[0], uint32(len(leaf.Raw)))
-	if err != nil {
-		return nil, err
-	}
+	try err
 	defer syscall.CertFreeCertificateContext(leafCtx)
 
 	handle, err := syscall.CertOpenStore(syscall.CERT_STORE_PROV_MEMORY, 0, 0, syscall.CERT_STORE_DEFER_CLOSE_UNTIL_LAST_FREE_FLAG, 0)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	defer syscall.CertCloseStore(handle, 0)
 
 	err = syscall.CertAddCertificateContextToStore(handle, leafCtx, syscall.CERT_STORE_ADD_ALWAYS, &storeCtx)
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	if opts.Intermediates != nil {
 		for i := 0; i < opts.Intermediates.len(); i++ {
 			intermediate, err := opts.Intermediates.cert(i)
-			if err != nil {
-				return nil, err
-			}
+			try err
 			ctx, err := syscall.CertCreateCertificateContext(syscall.X509_ASN_ENCODING|syscall.PKCS_7_ASN_ENCODING, &intermediate.Raw[0], uint32(len(intermediate.Raw)))
-			if err != nil {
-				return nil, err
-			}
+			try err
 
 			err = syscall.CertAddCertificateContextToStore(handle, ctx, syscall.CERT_STORE_ADD_ALWAYS, nil)
 			syscall.CertFreeCertificateContext(ctx)
-			if err != nil {
-				return nil, err
-			}
+			try err
 		}
 	}
 
@@ -79,9 +67,7 @@ func extractSimpleChain(simpleChain **syscall.CertSimpleChain, count int) (chain
 		buf := make([]byte, cert.Length)
 		copy(buf, encodedCert)
 		parsedCert, err := ParseCertificate(buf)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		chain = append(chain, parsedCert)
 	}
 
@@ -189,9 +175,10 @@ func verifyChain(c *Certificate, chainCtx *syscall.CertChainContext, opts *Verif
 		if parent.PublicKeyAlgorithm != ECDSA {
 			continue
 		}
-		if err := parent.CheckSignature(chain[i].SignatureAlgorithm,
-			chain[i].RawTBSCertificate, chain[i].Signature); err != nil {
-			return nil, err
+		{
+			err := parent.CheckSignature(chain[i].SignatureAlgorithm,
+				chain[i].RawTBSCertificate, chain[i].Signature)
+			try err
 		}
 	}
 	return chain, nil
@@ -201,9 +188,7 @@ func verifyChain(c *Certificate, chainCtx *syscall.CertChainContext, opts *Verif
 // to build certificate chains and verify them.
 func (c *Certificate) systemVerify(opts *VerifyOptions) (chains [][]*Certificate, err error) {
 	storeCtx, err := createStoreContext(c, opts)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	defer syscall.CertFreeCertificateContext(storeCtx)
 
 	para := new(syscall.CertChainPara)
@@ -247,9 +232,7 @@ func (c *Certificate) systemVerify(opts *VerifyOptions) (chains [][]*Certificate
 	// CertGetCertificateChain will traverse Windows's root stores in an attempt to build a verified certificate chain
 	var topCtx *syscall.CertChainContext
 	err = syscall.CertGetCertificateChain(syscall.Handle(0), storeCtx, verifyTime, storeCtx.Store, para, CERT_CHAIN_RETURN_LOWER_QUALITY_CONTEXTS, 0, &topCtx)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	defer syscall.CertFreeCertificateChain(topCtx)
 
 	chain, topErr := verifyChain(c, topCtx, opts)

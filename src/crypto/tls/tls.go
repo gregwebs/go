@@ -64,9 +64,7 @@ type listener struct {
 // The returned connection is of type *Conn.
 func (l *listener) Accept() (net.Conn, error) {
 	c, err := l.Listener.Accept()
-	if err != nil {
-		return nil, err
-	}
+	try err
 	return Server(c, l.config), nil
 }
 
@@ -91,9 +89,7 @@ func Listen(network, laddr string, config *Config) (net.Listener, error) {
 		return nil, errors.New("tls: neither Certificates, GetCertificate, nor GetConfigForClient set in Config")
 	}
 	l, err := net.Listen(network, laddr)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	return NewListener(l, config), nil
 }
 
@@ -131,9 +127,7 @@ func dial(ctx context.Context, netDialer *net.Dialer, network, addr string, conf
 	}
 
 	rawConn, err := netDialer.DialContext(ctx, network, addr)
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	colonPos := strings.LastIndex(addr, ":")
 	if colonPos == -1 {
@@ -215,10 +209,7 @@ func (d *Dialer) netDialer() *net.Dialer {
 // The returned Conn, if any, will always be of type *Conn.
 func (d *Dialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
 	c, err := dial(ctx, d.netDialer(), network, addr, d.Config)
-	if err != nil {
-		// Don't return c (a typed nil) in an interface.
-		return nil, err
-	}
+	try err
 	return c, nil
 }
 
@@ -229,13 +220,9 @@ func (d *Dialer) DialContext(ctx context.Context, network, addr string) (net.Con
 // be nil because the parsed form of the certificate is not retained.
 func LoadX509KeyPair(certFile, keyFile string) (Certificate, error) {
 	certPEMBlock, err := os.ReadFile(certFile)
-	if err != nil {
-		return Certificate{}, err
-	}
+	try err
 	keyPEMBlock, err := os.ReadFile(keyFile)
-	if err != nil {
-		return Certificate{}, err
-	}
+	try err
 	return X509KeyPair(certPEMBlock, keyPEMBlock)
 }
 

@@ -965,9 +965,7 @@ func (c *slowConn) Write(p []byte) (int, error) {
 		if wrote < allowed {
 			n, err := c.Conn.Write(p[wrote:allowed])
 			wrote += n
-			if err != nil {
-				return wrote, err
-			}
+			try err
 		}
 	}
 	return len(p), nil

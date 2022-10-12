@@ -489,8 +489,9 @@ func (hc *halfConn) encrypt(record, payload []byte, rand io.Reader) ([]byte, err
 			// (see the Sweet32 attack).
 			copy(explicitNonce, hc.seq[:])
 		} else {
-			if _, err := io.ReadFull(rand, explicitNonce); err != nil {
-				return nil, err
+			{
+				err := io.ReadFull(rand, explicitNonce)
+				try err
 			}
 		}
 	}
@@ -986,8 +987,9 @@ func (c *Conn) writeRecordLocked(typ recordType, data []byte) (int, error) {
 		if err != nil {
 			return n, err
 		}
-		if _, err := c.write(outBuf); err != nil {
-			return n, err
+		{
+			err := c.write(outBuf)
+			try err
 		}
 		n += m
 		data = data[m:]
@@ -1015,8 +1017,9 @@ func (c *Conn) writeRecord(typ recordType, data []byte) (int, error) {
 // the record layer.
 func (c *Conn) readHandshake() (any, error) {
 	for c.hand.Len() < 4 {
-		if err := c.readRecord(); err != nil {
-			return nil, err
+		{
+			err := c.readRecord()
+			try err
 		}
 	}
 
@@ -1027,8 +1030,9 @@ func (c *Conn) readHandshake() (any, error) {
 		return nil, c.in.setErrorLocked(fmt.Errorf("tls: handshake message of length %d bytes exceeds maximum of %d bytes", n, maxHandshake))
 	}
 	for c.hand.Len() < 4+n {
-		if err := c.readRecord(); err != nil {
-			return nil, err
+		{
+			err := c.readRecord()
+			try err
 		}
 	}
 	data = c.hand.Next(4 + n)
@@ -1118,15 +1122,17 @@ func (c *Conn) Write(b []byte) (int, error) {
 	}
 	defer atomic.AddInt32(&c.activeCall, -2)
 
-	if err := c.Handshake(); err != nil {
-		return 0, err
+	{
+		err := c.Handshake()
+		try err
 	}
 
 	c.out.Lock()
 	defer c.out.Unlock()
 
-	if err := c.out.err; err != nil {
-		return 0, err
+	{
+		err := c.out.err
+		try err
 	}
 
 	if !c.isHandshakeComplete.Load() {
@@ -1270,8 +1276,9 @@ func (c *Conn) handleKeyUpdate(keyUpdate *keyUpdateMsg) error {
 // has not yet completed. See SetDeadline, SetReadDeadline, and
 // SetWriteDeadline.
 func (c *Conn) Read(b []byte) (int, error) {
-	if err := c.Handshake(); err != nil {
-		return 0, err
+	{
+		err := c.Handshake()
+		try err
 	}
 	if len(b) == 0 {
 		// Put this after Handshake, in case people were calling
@@ -1283,12 +1290,14 @@ func (c *Conn) Read(b []byte) (int, error) {
 	defer c.in.Unlock()
 
 	for c.input.Len() == 0 {
-		if err := c.readRecord(); err != nil {
-			return 0, err
+		{
+			err := c.readRecord()
+			try err
 		}
 		for c.hand.Len() > 0 {
-			if err := c.handlePostHandshakeMessage(); err != nil {
-				return 0, err
+			{
+				err := c.handlePostHandshakeMessage()
+				try err
 			}
 		}
 	}
@@ -1304,8 +1313,9 @@ func (c *Conn) Read(b []byte) (int, error) {
 	// See https://golang.org/cl/76400046 and https://golang.org/issue/3514
 	if n != 0 && c.input.Len() == 0 && c.rawInput.Len() > 0 &&
 		recordType(c.rawInput.Bytes()[0]) == recordTypeAlert {
-		if err := c.readRecord(); err != nil {
-			return n, err // will be io.EOF on closeNotify
+		{
+			err := c.readRecord()
+			try err
 		}
 	}
 

@@ -19,8 +19,9 @@ func (r *rngReader) Read(b []byte) (n int, err error) {
 	// RtlGenRandom only returns 1<<32-1 bytes at a time. We only read at
 	// most 1<<31-1 bytes at a time so that  this works the same on 32-bit
 	// and 64-bit systems.
-	if err := batched(windows.RtlGenRandom, 1<<31-1)(b); err != nil {
-		return 0, err
+	{
+		err := batched(windows.RtlGenRandom, 1<<31-1)(b)
+		try err
 	}
 	return len(b), nil
 }

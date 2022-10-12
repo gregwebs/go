@@ -560,9 +560,7 @@ func (test *serverTest) connFromCommand() (conn *recordingConn, child *exec.Cmd,
 		IP:   net.IPv4(127, 0, 0, 1),
 		Port: 0,
 	})
-	if err != nil {
-		return nil, nil, err
-	}
+	try err
 	defer l.Close()
 
 	port := l.Addr().(*net.TCPAddr).Port
@@ -579,8 +577,9 @@ func (test *serverTest) connFromCommand() (conn *recordingConn, child *exec.Cmd,
 	var output bytes.Buffer
 	cmd.Stdout = &output
 	cmd.Stderr = &output
-	if err := cmd.Start(); err != nil {
-		return nil, nil, err
+	{
+		err := cmd.Start()
+		try err
 	}
 
 	connChan := make(chan any, 1)
@@ -617,9 +616,7 @@ func (test *serverTest) dataPath() string {
 
 func (test *serverTest) loadData() (flows [][]byte, err error) {
 	in, err := os.Open(test.dataPath())
-	if err != nil {
-		return nil, err
-	}
+	try err
 	defer in.Close()
 	return parseTestData(in)
 }

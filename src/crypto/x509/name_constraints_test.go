@@ -1617,22 +1617,19 @@ func makeConstraintsCACert(constraints constraintsSpec, name string, key *ecdsa.
 		IsCA:                  true,
 	}
 
-	if err := addConstraintsToTemplate(constraints, template); err != nil {
-		return nil, err
+	{
+		err := addConstraintsToTemplate(constraints, template)
+		try err
 	}
 
 	if parent == nil {
 		parent = template
 	}
 	derBytes, err := CreateCertificate(rand.Reader, template, parent, &key.PublicKey, parentKey)
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	caCert, err := ParseCertificate(derBytes)
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	return caCert, nil
 }
@@ -1717,9 +1714,7 @@ func makeConstraintsLeafCert(leaf leafSpec, key *ecdsa.PrivateKey, parent *Certi
 	}
 
 	derBytes, err := CreateCertificate(rand.Reader, template, parent, &key.PublicKey, parentKey)
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	return ParseCertificate(derBytes)
 }

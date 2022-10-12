@@ -39,8 +39,9 @@ type PKCS1v15DecryptOptions struct {
 func EncryptPKCS1v15(random io.Reader, pub *PublicKey, msg []byte) ([]byte, error) {
 	randutil.MaybeReadByte(random)
 
-	if err := checkPub(pub); err != nil {
-		return nil, err
+	{
+		err := checkPub(pub)
+		try err
 	}
 	k := pub.Size()
 	if len(msg) > k-11 {
@@ -49,9 +50,7 @@ func EncryptPKCS1v15(random io.Reader, pub *PublicKey, msg []byte) ([]byte, erro
 
 	if boring.Enabled && random == boring.RandReader {
 		bkey, err := boringPublicKey(pub)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		return boring.EncryptRSAPKCS1(bkey, msg)
 	}
 	boring.UnreachableExceptTests()
@@ -61,9 +60,7 @@ func EncryptPKCS1v15(random io.Reader, pub *PublicKey, msg []byte) ([]byte, erro
 	em[1] = 2
 	ps, mm := em[2:len(em)-len(msg)-1], em[len(em)-len(msg):]
 	err := nonZeroRandomBytes(ps, random)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	em[len(em)-len(msg)-1] = 0
 	copy(mm, msg)
 
@@ -90,15 +87,14 @@ func EncryptPKCS1v15(random io.Reader, pub *PublicKey, msg []byte) ([]byte, erro
 // forge signatures as if they had the private key. See
 // DecryptPKCS1v15SessionKey for a way of solving this problem.
 func DecryptPKCS1v15(random io.Reader, priv *PrivateKey, ciphertext []byte) ([]byte, error) {
-	if err := checkPub(&priv.PublicKey); err != nil {
-		return nil, err
+	{
+		err := checkPub(&priv.PublicKey)
+		try err
 	}
 
 	if boring.Enabled {
 		bkey, err := boringPrivateKey(priv)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		out, err := boring.DecryptRSAPKCS1(bkey, ciphertext)
 		if err != nil {
 			return nil, ErrDecryption
@@ -107,9 +103,7 @@ func DecryptPKCS1v15(random io.Reader, priv *PrivateKey, ciphertext []byte) ([]b
 	}
 
 	valid, out, index, err := decryptPKCS1v15(random, priv, ciphertext)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	if valid == 0 {
 		return nil, ErrDecryption
 	}
@@ -275,9 +269,7 @@ var hashPrefixes = map[crypto.Hash][]byte{
 // signatures provide authenticity, not confidentiality.
 func SignPKCS1v15(random io.Reader, priv *PrivateKey, hash crypto.Hash, hashed []byte) ([]byte, error) {
 	hashLen, prefix, err := pkcs1v15HashInfo(hash, len(hashed))
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	tLen := len(prefix) + hashLen
 	k := priv.Size()
@@ -287,9 +279,7 @@ func SignPKCS1v15(random io.Reader, priv *PrivateKey, hash crypto.Hash, hashed [
 
 	if boring.Enabled {
 		bkey, err := boringPrivateKey(priv)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		return boring.SignRSAPKCS1v15(bkey, hash, hashed)
 	}
 
@@ -304,9 +294,7 @@ func SignPKCS1v15(random io.Reader, priv *PrivateKey, hash crypto.Hash, hashed [
 
 	m := new(big.Int).SetBytes(em)
 	c, err := decryptAndCheck(random, priv, m)
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	return c.FillBytes(em), nil
 }

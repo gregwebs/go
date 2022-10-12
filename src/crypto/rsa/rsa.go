@@ -165,11 +165,13 @@ func (priv *PrivateKey) Decrypt(rand io.Reader, ciphertext []byte, opts crypto.D
 	case *PKCS1v15DecryptOptions:
 		if l := opts.SessionKeyLen; l > 0 {
 			plaintext = make([]byte, l)
-			if _, err := io.ReadFull(rand, plaintext); err != nil {
-				return nil, err
+			{
+				err := io.ReadFull(rand, plaintext)
+				try err
 			}
-			if err := DecryptPKCS1v15SessionKey(rand, priv, ciphertext, plaintext); err != nil {
-				return nil, err
+			{
+				err := DecryptPKCS1v15SessionKey(rand, priv, ciphertext, plaintext)
+				try err
 			}
 			return plaintext, nil
 		} else {
@@ -259,9 +261,7 @@ func GenerateMultiPrimeKey(random io.Reader, nprimes int, bits int) (*PrivateKey
 
 	if boring.Enabled && random == boring.RandReader && nprimes == 2 && (bits == 2048 || bits == 3072) {
 		bN, bE, bD, bP, bQ, bDp, bDq, bQinv, err := boring.GenerateKeyRSA(bits)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		N := bbig.Dec(bN)
 		E := bbig.Dec(bE)
 		D := bbig.Dec(bD)
@@ -444,8 +444,9 @@ func encrypt(c *big.Int, pub *PublicKey, m *big.Int) *big.Int {
 // The message must be no longer than the length of the public modulus minus
 // twice the hash length, minus a further 2.
 func EncryptOAEP(hash hash.Hash, random io.Reader, pub *PublicKey, msg []byte, label []byte) ([]byte, error) {
-	if err := checkPub(pub); err != nil {
-		return nil, err
+	{
+		err := checkPub(pub)
+		try err
 	}
 	hash.Reset()
 	k := pub.Size()
@@ -455,9 +456,7 @@ func EncryptOAEP(hash hash.Hash, random io.Reader, pub *PublicKey, msg []byte, l
 
 	if boring.Enabled && random == boring.RandReader {
 		bkey, err := boringPublicKey(pub)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		return boring.EncryptRSAOAEP(hash, bkey, msg, label)
 	}
 	boring.UnreachableExceptTests()
@@ -475,9 +474,7 @@ func EncryptOAEP(hash hash.Hash, random io.Reader, pub *PublicKey, msg []byte, l
 	copy(db[len(db)-len(msg):], msg)
 
 	_, err := io.ReadFull(random, seed)
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	mgf1XOR(db, hash, seed)
 	mgf1XOR(seed, hash, db)
@@ -651,8 +648,9 @@ func decryptAndCheck(random io.Reader, priv *PrivateKey, c *big.Int) (m *big.Int
 // The label parameter must match the value given when encrypting. See
 // EncryptOAEP for details.
 func DecryptOAEP(hash hash.Hash, random io.Reader, priv *PrivateKey, ciphertext []byte, label []byte) ([]byte, error) {
-	if err := checkPub(&priv.PublicKey); err != nil {
-		return nil, err
+	{
+		err := checkPub(&priv.PublicKey)
+		try err
 	}
 	k := priv.Size()
 	if len(ciphertext) > k ||
@@ -662,9 +660,7 @@ func DecryptOAEP(hash hash.Hash, random io.Reader, priv *PrivateKey, ciphertext 
 
 	if boring.Enabled {
 		bkey, err := boringPrivateKey(priv)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		out, err := boring.DecryptRSAOAEP(hash, bkey, ciphertext, label)
 		if err != nil {
 			return nil, ErrDecryption
@@ -674,9 +670,7 @@ func DecryptOAEP(hash hash.Hash, random io.Reader, priv *PrivateKey, ciphertext 
 	c := new(big.Int).SetBytes(ciphertext)
 
 	m, err := decrypt(random, priv, c)
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	hash.Write(label)
 	lHash := hash.Sum(nil)

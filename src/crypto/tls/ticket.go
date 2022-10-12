@@ -126,8 +126,9 @@ func (c *Conn) encryptTicket(state []byte) ([]byte, error) {
 	iv := encrypted[ticketKeyNameLen : ticketKeyNameLen+aes.BlockSize]
 	macBytes := encrypted[len(encrypted)-sha256.Size:]
 
-	if _, err := io.ReadFull(c.config.rand(), iv); err != nil {
-		return nil, err
+	{
+		err := io.ReadFull(c.config.rand(), iv)
+		try err
 	}
 	key := c.ticketKeys[0]
 	copy(keyName, key.keyName[:])

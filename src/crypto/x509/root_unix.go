@@ -85,9 +85,7 @@ func loadSystemRoots() (*CertPool, error) {
 // symlinks that point within the directory.
 func readUniqueDirectoryEntries(dir string) ([]fs.DirEntry, error) {
 	files, err := os.ReadDir(dir)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	uniq := files[:0]
 	for _, f := range files {
 		if !isSameDirSymlink(f, dir) {

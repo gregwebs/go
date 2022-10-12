@@ -62,15 +62,12 @@ func (p *P384Point) SetBytes(b []byte) (*P384Point, error) {
 	// Uncompressed form.
 	case len(b) == 1+2*p384ElementLength && b[0] == 4:
 		x, err := new(fiat.P384Element).SetBytes(b[1 : 1+p384ElementLength])
-		if err != nil {
-			return nil, err
-		}
+		try err
 		y, err := new(fiat.P384Element).SetBytes(b[1+p384ElementLength:])
-		if err != nil {
-			return nil, err
-		}
-		if err := p384CheckOnCurve(x, y); err != nil {
-			return nil, err
+		try err
+		{
+			err := p384CheckOnCurve(x, y)
+			try err
 		}
 		p.x.Set(x)
 		p.y.Set(y)
@@ -80,9 +77,7 @@ func (p *P384Point) SetBytes(b []byte) (*P384Point, error) {
 	// Compressed form.
 	case len(b) == 1+p384ElementLength && (b[0] == 2 || b[0] == 3):
 		x, err := new(fiat.P384Element).SetBytes(b[1:])
-		if err != nil {
-			return nil, err
-		}
+		try err
 
 		// y² = x³ - 3x + b
 		y := p384Polynomial(new(fiat.P384Element), x)

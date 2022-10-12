@@ -64,15 +64,12 @@ func (p *P256Point) SetBytes(b []byte) (*P256Point, error) {
 	// Uncompressed form.
 	case len(b) == 1+2*p256ElementLength && b[0] == 4:
 		x, err := new(fiat.P256Element).SetBytes(b[1 : 1+p256ElementLength])
-		if err != nil {
-			return nil, err
-		}
+		try err
 		y, err := new(fiat.P256Element).SetBytes(b[1+p256ElementLength:])
-		if err != nil {
-			return nil, err
-		}
-		if err := p256CheckOnCurve(x, y); err != nil {
-			return nil, err
+		try err
+		{
+			err := p256CheckOnCurve(x, y)
+			try err
 		}
 		p.x.Set(x)
 		p.y.Set(y)
@@ -82,9 +79,7 @@ func (p *P256Point) SetBytes(b []byte) (*P256Point, error) {
 	// Compressed form.
 	case len(b) == 1+p256ElementLength && (b[0] == 2 || b[0] == 3):
 		x, err := new(fiat.P256Element).SetBytes(b[1:])
-		if err != nil {
-			return nil, err
-		}
+		try err
 
 		// y² = x³ - 3x + b
 		y := p256Polynomial(new(fiat.P256Element), x)

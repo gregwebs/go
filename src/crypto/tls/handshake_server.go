@@ -129,9 +129,7 @@ func (hs *serverHandshakeState) handshake() error {
 // readClientHello reads a ClientHello message and selects the protocol version.
 func (c *Conn) readClientHello(ctx context.Context) (*clientHelloMsg, error) {
 	msg, err := c.readHandshake()
-	if err != nil {
-		return nil, err
-	}
+	try err
 	clientHello, ok := msg.(*clientHelloMsg)
 	if !ok {
 		c.sendAlert(alertUnexpectedMessage)

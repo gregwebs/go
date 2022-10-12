@@ -211,29 +211,21 @@ func emsaPSSVerify(mHash, em []byte, emBits, sLen int, hash hash.Hash) error {
 func signPSSWithSalt(rand io.Reader, priv *PrivateKey, hash crypto.Hash, hashed, salt []byte) ([]byte, error) {
 	emBits := priv.N.BitLen() - 1
 	em, err := emsaPSSEncode(hashed, emBits, salt, hash.New())
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	if boring.Enabled {
 		bkey, err := boringPrivateKey(priv)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		// Note: BoringCrypto takes care of the "AndCheck" part of "decryptAndCheck".
 		// (It's not just decrypt.)
 		s, err := boring.DecryptRSANoPadding(bkey, em)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		return s, nil
 	}
 
 	m := new(big.Int).SetBytes(em)
 	c, err := decryptAndCheck(rand, priv, m)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	s := make([]byte, priv.Size())
 	return c.FillBytes(s), nil
 }
@@ -292,16 +284,15 @@ func SignPSS(rand io.Reader, priv *PrivateKey, hash crypto.Hash, digest []byte, 
 
 	if boring.Enabled && rand == boring.RandReader {
 		bkey, err := boringPrivateKey(priv)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		return boring.SignRSAPSS(bkey, hash, digest, saltLength)
 	}
 	boring.UnreachableExceptTests()
 
 	salt := make([]byte, saltLength)
-	if _, err := io.ReadFull(rand, salt); err != nil {
-		return nil, err
+	{
+		err := io.ReadFull(rand, salt)
+		try err
 	}
 	return signPSSWithSalt(rand, priv, hash, digest, salt)
 }

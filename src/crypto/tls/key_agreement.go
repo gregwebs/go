@@ -62,9 +62,7 @@ func (ka rsaKeyAgreement) processClientKeyExchange(config *Config, cert *Certifi
 	}
 	// Perform constant time RSA PKCS #1 v1.5 decryption
 	preMasterSecret, err := priv.Decrypt(config.rand(), ciphertext, &rsa.PKCS1v15DecryptOptions{SessionKeyLen: 48})
-	if err != nil {
-		return nil, err
-	}
+	try err
 	// We don't check the version number in the premaster secret. For one,
 	// by checking it, we would leak information about the validity of the
 	// encrypted pre-master secret. Secondly, it provides only a small
@@ -83,18 +81,14 @@ func (ka rsaKeyAgreement) generateClientKeyExchange(config *Config, clientHello 
 	preMasterSecret[0] = byte(clientHello.vers >> 8)
 	preMasterSecret[1] = byte(clientHello.vers)
 	_, err := io.ReadFull(config.rand(), preMasterSecret[2:])
-	if err != nil {
-		return nil, nil, err
-	}
+	try err
 
 	rsaKey, ok := cert.PublicKey.(*rsa.PublicKey)
 	if !ok {
 		return nil, nil, errors.New("tls: server certificate contains incorrect key type for selected ciphersuite")
 	}
 	encrypted, err := rsa.EncryptPKCS1v15(config.rand(), rsaKey, preMasterSecret)
-	if err != nil {
-		return nil, nil, err
-	}
+	try err
 	ckx := new(clientKeyExchangeMsg)
 	ckx.ciphertext = make([]byte, len(encrypted)+2)
 	ckx.ciphertext[0] = byte(len(encrypted) >> 8)
@@ -183,9 +177,7 @@ func (ka *ecdheKeyAgreement) generateServerKeyExchange(config *Config, cert *Cer
 	}
 
 	key, err := generateECDHEKey(config.rand(), curveID)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	ka.key = key
 
 	// See RFC 4492, Section 5.4.

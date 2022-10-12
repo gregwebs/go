@@ -29,8 +29,9 @@ func Prime(rand io.Reader, bits int) (*big.Int, error) {
 	p := new(big.Int)
 
 	for {
-		if _, err := io.ReadFull(rand, bytes); err != nil {
-			return nil, err
+		{
+			err := io.ReadFull(rand, bytes)
+			try err
 		}
 
 		// Clear bits in the first byte to make sure the candidate has a size <= bits.

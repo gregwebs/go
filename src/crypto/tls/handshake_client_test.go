@@ -231,8 +231,9 @@ func (test *clientTest) connFromCommand() (conn *recordingConn, child *exec.Cmd,
 	out := newOpensslOutputSink()
 	cmd.Stdout = out
 	cmd.Stderr = out
-	if err := cmd.Start(); err != nil {
-		return nil, nil, nil, nil, err
+	{
+		err := cmd.Start()
+		try err
 	}
 
 	// OpenSSL does print an "ACCEPT" banner, but it does so *before*
@@ -270,9 +271,7 @@ func (test *clientTest) dataPath() string {
 
 func (test *clientTest) loadData() (flows [][]byte, err error) {
 	in, err := os.Open(test.dataPath())
-	if err != nil {
-		return nil, err
-	}
+	try err
 	defer in.Close()
 	return parseTestData(in)
 }

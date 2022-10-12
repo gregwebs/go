@@ -312,9 +312,7 @@ func (f FS) Open(name string) (fs.File, error) {
 // ReadDir reads and returns the entire named directory.
 func (f FS) ReadDir(name string) ([]fs.DirEntry, error) {
 	file, err := f.Open(name)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	dir, ok := file.(*openDir)
 	if !ok {
 		return nil, &fs.PathError{Op: "read", Path: name, Err: errors.New("not a directory")}
@@ -329,9 +327,7 @@ func (f FS) ReadDir(name string) ([]fs.DirEntry, error) {
 // ReadFile reads and returns the content of the named file.
 func (f FS) ReadFile(name string) ([]byte, error) {
 	file, err := f.Open(name)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	ofile, ok := file.(*openFile)
 	if !ok {
 		return nil, &fs.PathError{Op: "read", Path: name, Err: errors.New("is a directory")}

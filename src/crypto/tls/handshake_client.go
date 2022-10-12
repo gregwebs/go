@@ -138,9 +138,7 @@ func (c *Conn) makeClientHello() (*clientHelloMsg, *ecdh.PrivateKey, error) {
 			return nil, nil, errors.New("tls: CurvePreferences includes unsupported curve")
 		}
 		key, err = generateECDHEKey(config.rand(), curveID)
-		if err != nil {
-			return nil, nil, err
-		}
+		try err
 		hello.keyShares = []keyShare{{group: curveID, data: key.PublicKey().Bytes()}}
 	}
 
@@ -689,8 +687,9 @@ func (hs *clientHandshakeState) serverResumedSession() bool {
 func (hs *clientHandshakeState) processServerHello() (bool, error) {
 	c := hs.c
 
-	if err := hs.pickCipherSuite(); err != nil {
-		return false, err
+	{
+		err := hs.pickCipherSuite()
+		try err
 	}
 
 	if hs.serverHello.compressionMethod != compressionNone {

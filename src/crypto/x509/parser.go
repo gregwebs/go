@@ -183,13 +183,9 @@ func parseTime(der *cryptobyte.String) (time.Time, error) {
 
 func parseValidity(der cryptobyte.String) (time.Time, time.Time, error) {
 	notBefore, err := parseTime(&der)
-	if err != nil {
-		return time.Time{}, time.Time{}, err
-	}
+	try err
 	notAfter, err := parseTime(&der)
-	if err != nil {
-		return time.Time{}, time.Time{}, err
-	}
+	try err
 
 	return notBefore, notAfter, nil
 }
@@ -851,9 +847,7 @@ func parseCertificate(der []byte) (*Certificate, error) {
 		return nil, errors.New("x509: inner and outer signature algorithm identifiers don't match")
 	}
 	sigAI, err := parseAI(sigAISeq)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	cert.SignatureAlgorithm = getSignatureAlgorithmFromAI(sigAI)
 
 	var issuerSeq cryptobyte.String
@@ -862,9 +856,7 @@ func parseCertificate(der []byte) (*Certificate, error) {
 	}
 	cert.RawIssuer = issuerSeq
 	issuerRDNs, err := parseName(issuerSeq)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	cert.Issuer.FillFromRDNSequence(issuerRDNs)
 
 	var validity cryptobyte.String
@@ -872,9 +864,7 @@ func parseCertificate(der []byte) (*Certificate, error) {
 		return nil, errors.New("x509: malformed validity")
 	}
 	cert.NotBefore, cert.NotAfter, err = parseValidity(validity)
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	var subjectSeq cryptobyte.String
 	if !tbs.ReadASN1Element(&subjectSeq, cryptobyte_asn1.SEQUENCE) {
@@ -882,9 +872,7 @@ func parseCertificate(der []byte) (*Certificate, error) {
 	}
 	cert.RawSubject = subjectSeq
 	subjectRDNs, err := parseName(subjectSeq)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	cert.Subject.FillFromRDNSequence(subjectRDNs)
 
 	var spki cryptobyte.String
@@ -900,9 +888,7 @@ func parseCertificate(der []byte) (*Certificate, error) {
 		return nil, errors.New("x509: malformed public key algorithm identifier")
 	}
 	pkAI, err := parseAI(pkAISeq)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	cert.PublicKeyAlgorithm = getPublicKeyAlgorithmFromOID(pkAI.Algorithm)
 	var spk asn1.BitString
 	if !spki.ReadASN1BitString(&spk) {
@@ -912,9 +898,7 @@ func parseCertificate(der []byte) (*Certificate, error) {
 		Algorithm: pkAI,
 		PublicKey: spk,
 	})
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	if cert.Version > 1 {
 		if !tbs.SkipOptionalASN1(cryptobyte_asn1.Tag(1).ContextSpecific()) {
@@ -940,9 +924,7 @@ func parseCertificate(der []byte) (*Certificate, error) {
 						return nil, errors.New("x509: malformed extension")
 					}
 					ext, err := parseExtension(extension)
-					if err != nil {
-						return nil, err
-					}
+					try err
 					oidStr := ext.Id.String()
 					if seenExts[oidStr] {
 						return nil, errors.New("x509: certificate contains duplicate extensions")
@@ -970,9 +952,7 @@ func parseCertificate(der []byte) (*Certificate, error) {
 // ParseCertificate parses a single certificate from the given ASN.1 DER data.
 func ParseCertificate(der []byte) (*Certificate, error) {
 	cert, err := parseCertificate(der)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	if len(der) != len(cert.Raw) {
 		return nil, errors.New("x509: trailing data")
 	}
@@ -985,9 +965,7 @@ func ParseCertificates(der []byte) ([]*Certificate, error) {
 	var certs []*Certificate
 	for len(der) > 0 {
 		cert, err := parseCertificate(der)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		certs = append(certs, cert)
 		der = der[len(cert.Raw):]
 	}
@@ -1052,9 +1030,7 @@ func ParseRevocationList(der []byte) (*RevocationList, error) {
 		return nil, errors.New("x509: inner and outer signature algorithm identifiers don't match")
 	}
 	sigAI, err := parseAI(sigAISeq)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	rl.SignatureAlgorithm = getSignatureAlgorithmFromAI(sigAI)
 
 	var signature asn1.BitString
@@ -1069,15 +1045,11 @@ func ParseRevocationList(der []byte) (*RevocationList, error) {
 	}
 	rl.RawIssuer = issuerSeq
 	issuerRDNs, err := parseName(issuerSeq)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	rl.Issuer.FillFromRDNSequence(issuerRDNs)
 
 	rl.ThisUpdate, err = parseTime(&tbs)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	if tbs.PeekASN1Tag(cryptobyte_asn1.GeneralizedTime) || tbs.PeekASN1Tag(cryptobyte_asn1.UTCTime) {
 		rl.NextUpdate, err = parseTime(&tbs)
 		if err != nil {
@@ -1116,9 +1088,7 @@ func ParseRevocationList(der []byte) (*RevocationList, error) {
 						return nil, errors.New("x509: malformed extension")
 					}
 					ext, err := parseExtension(extension)
-					if err != nil {
-						return nil, err
-					}
+					try err
 					rc.Extensions = append(rc.Extensions, ext)
 				}
 			}
@@ -1142,9 +1112,7 @@ func ParseRevocationList(der []byte) (*RevocationList, error) {
 				return nil, errors.New("x509: malformed extension")
 			}
 			ext, err := parseExtension(extension)
-			if err != nil {
-				return nil, err
-			}
+			try err
 			if ext.Id.Equal(oidExtensionAuthorityKeyId) {
 				rl.AuthorityKeyId = ext.Value
 			} else if ext.Id.Equal(oidExtensionCRLNumber) {

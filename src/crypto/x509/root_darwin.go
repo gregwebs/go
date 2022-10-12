@@ -20,9 +20,7 @@ func (c *Certificate) systemVerify(opts *VerifyOptions) (chains [][]*Certificate
 	if opts.Intermediates != nil {
 		for _, lc := range opts.Intermediates.lazyCerts {
 			c, err := lc.getCert()
-			if err != nil {
-				return nil, err
-			}
+			try err
 			sc, err := macOS.SecCertificateCreateWithData(c.Raw)
 			if err == nil {
 				macOS.CFArrayAppendValue(certs, sc)
@@ -36,16 +34,15 @@ func (c *Certificate) systemVerify(opts *VerifyOptions) (chains [][]*Certificate
 	macOS.CFArrayAppendValue(policies, sslPolicy)
 
 	trustObj, err := macOS.SecTrustCreateWithCertificates(certs, policies)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	defer macOS.CFRelease(trustObj)
 
 	if !opts.CurrentTime.IsZero() {
 		dateRef := macOS.TimeToCFDateRef(opts.CurrentTime)
 		defer macOS.CFRelease(dateRef)
-		if err := macOS.SecTrustSetVerifyDate(trustObj, dateRef); err != nil {
-			return nil, err
+		{
+			err := macOS.SecTrustSetVerifyDate(trustObj, dateRef)
+			try err
 		}
 	}
 
@@ -54,8 +51,9 @@ func (c *Certificate) systemVerify(opts *VerifyOptions) (chains [][]*Certificate
 	// always enforce its SCT requirements, and there are still _some_ people
 	// using TLS or OCSP for that.
 
-	if err := macOS.SecTrustEvaluateWithError(trustObj); err != nil {
-		return nil, err
+	{
+		err := macOS.SecTrustEvaluateWithError(trustObj)
+		try err
 	}
 
 	chain := [][]*Certificate{{}}
@@ -63,9 +61,7 @@ func (c *Certificate) systemVerify(opts *VerifyOptions) (chains [][]*Certificate
 	for i := 0; i < numCerts; i++ {
 		certRef := macOS.SecTrustGetCertificateAtIndex(trustObj, i)
 		cert, err := exportCertificate(certRef)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		chain[0] = append(chain[0], cert)
 	}
 	if len(chain[0]) == 0 {
@@ -75,8 +71,9 @@ func (c *Certificate) systemVerify(opts *VerifyOptions) (chains [][]*Certificate
 
 	if opts.DNSName != "" {
 		// If we have a DNS name, apply our own name verification
-		if err := chain[0][0].VerifyHostname(opts.DNSName); err != nil {
-			return nil, err
+		{
+			err := chain[0][0].VerifyHostname(opts.DNSName)
+			try err
 		}
 	}
 
@@ -102,9 +99,7 @@ func (c *Certificate) systemVerify(opts *VerifyOptions) (chains [][]*Certificate
 // exportCertificate returns a *Certificate for a SecCertificateRef.
 func exportCertificate(cert macOS.CFRef) (*Certificate, error) {
 	data, err := macOS.SecCertificateCopyData(cert)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	return ParseCertificate(data)
 }
 

@@ -52,9 +52,7 @@ func curveNID(curve string) (C.int, error) {
 
 func NewPublicKeyECDSA(curve string, X, Y BigInt) (*PublicKeyECDSA, error) {
 	key, err := newECKey(curve, X, Y)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	k := &PublicKeyECDSA{key}
 	// Note: Because of the finalizer, any time k.key is passed to cgo,
 	// that call must be followed by a call to runtime.KeepAlive(k),
@@ -66,9 +64,7 @@ func NewPublicKeyECDSA(curve string, X, Y BigInt) (*PublicKeyECDSA, error) {
 
 func newECKey(curve string, X, Y BigInt) (*C.GO_EC_KEY, error) {
 	nid, err := curveNID(curve)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	key := C._goboringcrypto_EC_KEY_new_by_curve_name(nid)
 	if key == nil {
 		return nil, fail("EC_KEY_new_by_curve_name")
@@ -99,9 +95,7 @@ func newECKey(curve string, X, Y BigInt) (*C.GO_EC_KEY, error) {
 
 func NewPrivateKeyECDSA(curve string, X, Y BigInt, D BigInt) (*PrivateKeyECDSA, error) {
 	key, err := newECKey(curve, X, Y)
-	if err != nil {
-		return nil, err
-	}
+	try err
 	bd := bigToBN(D)
 	ok := bd != nil && C._goboringcrypto_EC_KEY_set_private_key(key, bd) != 0
 	if bd != nil {
@@ -139,9 +133,7 @@ func VerifyECDSA(pub *PublicKeyECDSA, hash []byte, sig []byte) bool {
 
 func GenerateKeyECDSA(curve string) (X, Y, D BigInt, err error) {
 	nid, err := curveNID(curve)
-	if err != nil {
-		return nil, nil, nil, err
-	}
+	try err
 	key := C._goboringcrypto_EC_KEY_new_by_curve_name(nid)
 	if key == nil {
 		return nil, nil, nil, fail("EC_KEY_new_by_curve_name")

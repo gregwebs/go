@@ -62,15 +62,12 @@ func (p *P521Point) SetBytes(b []byte) (*P521Point, error) {
 	// Uncompressed form.
 	case len(b) == 1+2*p521ElementLength && b[0] == 4:
 		x, err := new(fiat.P521Element).SetBytes(b[1 : 1+p521ElementLength])
-		if err != nil {
-			return nil, err
-		}
+		try err
 		y, err := new(fiat.P521Element).SetBytes(b[1+p521ElementLength:])
-		if err != nil {
-			return nil, err
-		}
-		if err := p521CheckOnCurve(x, y); err != nil {
-			return nil, err
+		try err
+		{
+			err := p521CheckOnCurve(x, y)
+			try err
 		}
 		p.x.Set(x)
 		p.y.Set(y)
@@ -80,9 +77,7 @@ func (p *P521Point) SetBytes(b []byte) (*P521Point, error) {
 	// Compressed form.
 	case len(b) == 1+p521ElementLength && (b[0] == 2 || b[0] == 3):
 		x, err := new(fiat.P521Element).SetBytes(b[1:])
-		if err != nil {
-			return nil, err
-		}
+		try err
 
 		// y² = x³ - 3x + b
 		y := p521Polynomial(new(fiat.P521Element), x)

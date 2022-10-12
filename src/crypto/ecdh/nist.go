@@ -38,8 +38,9 @@ func (c *nistCurve[Point]) GenerateKey(rand io.Reader) (*PrivateKey, error) {
 	key := make([]byte, len(c.scalarOrder))
 	randutil.MaybeReadByte(rand)
 	for {
-		if _, err := io.ReadFull(rand, key); err != nil {
-			return nil, err
+		{
+			err := io.ReadFull(rand, key)
+			try err
 		}
 
 		// Mask off any excess bits if the size of the underlying field is not a
@@ -143,8 +144,9 @@ func (c *nistCurve[Point]) NewPublicKey(key []byte) (*PublicKey, error) {
 		return nil, errors.New("crypto/ecdh: invalid public key")
 	}
 	// SetBytes also checks that the point is on the curve.
-	if _, err := c.newPoint().SetBytes(key); err != nil {
-		return nil, err
+	{
+		err := c.newPoint().SetBytes(key)
+		try err
 	}
 
 	return &PublicKey{
@@ -155,11 +157,10 @@ func (c *nistCurve[Point]) NewPublicKey(key []byte) (*PublicKey, error) {
 
 func (c *nistCurve[Point]) ECDH(local *PrivateKey, remote *PublicKey) ([]byte, error) {
 	p, err := c.newPoint().SetBytes(remote.publicKey)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := p.ScalarMult(p, local.privateKey); err != nil {
-		return nil, err
+	try err
+	{
+		err := p.ScalarMult(p, local.privateKey)
+		try err
 	}
 	// BytesX will return an error if p is the point at infinity.
 	return p.BytesX()

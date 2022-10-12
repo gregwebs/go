@@ -111,17 +111,13 @@ func (priv *PrivateKey) Equal(x crypto.PrivateKey) bool {
 func (priv *PrivateKey) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts) ([]byte, error) {
 	if boring.Enabled && rand == boring.RandReader {
 		b, err := boringPrivateKey(priv)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		return boring.SignMarshalECDSA(b, digest)
 	}
 	boring.UnreachableExceptTests()
 
 	r, s, err := Sign(rand, priv, digest)
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	var b cryptobyte.Builder
 	b.AddASN1(asn1.SEQUENCE, func(b *cryptobyte.Builder) {
@@ -156,17 +152,13 @@ func randFieldElement(c elliptic.Curve, rand io.Reader) (k *big.Int, err error) 
 func GenerateKey(c elliptic.Curve, rand io.Reader) (*PrivateKey, error) {
 	if boring.Enabled && rand == boring.RandReader {
 		x, y, d, err := boring.GenerateKeyECDSA(c.Params().Name)
-		if err != nil {
-			return nil, err
-		}
+		try err
 		return &PrivateKey{PublicKey: PublicKey{Curve: c, X: bbig.Dec(x), Y: bbig.Dec(y)}, D: bbig.Dec(d)}, nil
 	}
 	boring.UnreachableExceptTests()
 
 	k, err := randFieldElement(c, rand)
-	if err != nil {
-		return nil, err
-	}
+	try err
 
 	priv := new(PrivateKey)
 	priv.PublicKey.Curve = c
@@ -216,13 +208,9 @@ func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err err
 
 	if boring.Enabled && rand == boring.RandReader {
 		b, err := boringPrivateKey(priv)
-		if err != nil {
-			return nil, nil, err
-		}
+		try err
 		sig, err := boring.SignMarshalECDSA(b, hash)
-		if err != nil {
-			return nil, nil, err
-		}
+		try err
 		var r, s big.Int
 		var inner cryptobyte.String
 		input := cryptobyte.String(sig)
@@ -265,9 +253,7 @@ func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err err
 
 	// Create an AES-CTR instance to use as a CSPRNG.
 	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, nil, err
-	}
+	try err
 
 	// Create a CSPRNG that xors a stream of zeros with
 	// the output of the AES-CTR instance.

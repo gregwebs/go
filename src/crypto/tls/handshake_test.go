@@ -154,19 +154,13 @@ func (r *recordingConn) WriteTo(w io.Writer) (int64, error) {
 		}
 		n, err := fmt.Fprintf(w, ">>> Flow %d (%s to %s)\n", i+1, source, dest)
 		written += int64(n)
-		if err != nil {
-			return written, err
-		}
+		try err
 		dumper := hex.Dumper(w)
 		n, err = dumper.Write(flow)
 		written += int64(n)
-		if err != nil {
-			return written, err
-		}
+		try err
 		err = dumper.Close()
-		if err != nil {
-			return written, err
-		}
+		try err
 		clientToServer = !clientToServer
 	}
 	return written, nil

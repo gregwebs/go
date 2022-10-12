@@ -35,8 +35,9 @@ func (c *x25519Curve) String() string {
 func (c *x25519Curve) GenerateKey(rand io.Reader) (*PrivateKey, error) {
 	key := make([]byte, x25519PrivateKeySize)
 	randutil.MaybeReadByte(rand)
-	if _, err := io.ReadFull(rand, key); err != nil {
-		return nil, err
+	{
+		err := io.ReadFull(rand, key)
+		try err
 	}
 	return c.NewPrivateKey(key)
 }
